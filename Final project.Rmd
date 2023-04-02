@@ -1,6 +1,6 @@
 ---
 title: "Environmental Spatial Statistics Final Project"
-author: "Mohannad Zahra - Shadi Ghantous"
+author: "Mohannad Zahra"
 date: "2023-02-09"
 output: html_document
 always_allow_html: yes
@@ -12,19 +12,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 ## Decreasing groundwater levels in Brandenburg:
-
-Illustration of groundwater location (USGS).
-
-Increasing aridity and excessive water withdrawal from groundwater bodies leads to a decline of groundwater levels. Where and why groundwater levels vary has recently been studied by CORRECTIV: **Wo in Deutschland das Grundwasser sinkt** (in german language). CORRECTIV is an independent Organisation for investigative journalism and research.
-
-The data of this project is a slightly revised analysis of the data provided by CORRECTIV on their GitHub repository. Based on groundwater levels measured in Brandenburg in June, July and August, a trend [m/year] was derived for the last 5 years. Negative values refer to declining groundwater levels and positive values to rising levels. Note that there may be duplicate observations (groundwater stations with the same coordinates).
-
-The aim of the project is to identify spatial controls (spatial trends or covariates) on and possible interactions of observed groundwater trends. Hence, download data on potential covariates such as digital elevation models (e.g. COP30 or 90 from opentopography.org or land use/land cover.
-
-Once you have prepared the data, perform an exploratory analysis. Analyze and model the variogram and develop a kriging model (perhaps including additional variables (universal kriging)) that enables you to spatially predict groundwater trends.
-
-Visualize and discuss your results using maps and other plots.
-
 
 ## Abstract:
 
@@ -61,7 +48,7 @@ library(tmap)
 ## Read the data:
 
 ```{r}
-DWD <-read.table('C:/Users/mohan/R/Final project/groundwater/groundwater_5year_trend.csv',sep=",",header = T)
+DWD <-read.table('groundwater/groundwater_5year_trend.csv',sep=",",header = T)
 head(DWD)
 ```
 
@@ -284,7 +271,7 @@ From the estimator AIC results we can see that the Exponential variogram has the
 
 ## read the DEM for Brandenburg area:
 ```{r}
-DEMM = read_stars("C:/Users/mohan/R/Final project/output_COP90.tif")
+DEMM = read_stars("output_COP90.tif")
 DEM_e = DEMM$output_COP90.tif
 ```
 
