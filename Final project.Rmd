@@ -1,0 +1,376 @@
+---
+title: "Environmental Spatial Statistics Final Project"
+author: "Mohannad Zahra - Shadi Ghantous"
+date: "2023-02-09"
+output: html_document
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+## Decreasing groundwater levels in Brandenburg:
+
+Illustration of groundwater location (USGS).
+
+Increasing aridity and excessive water withdrawal from groundwater bodies leads to a decline of groundwater levels. Where and why groundwater levels vary has recently been studied by CORRECTIV: **Wo in Deutschland das Grundwasser sinkt** (in german language). CORRECTIV is an independent Organisation for investigative journalism and research.
+
+The data of this project is a slightly revised analysis of the data provided by CORRECTIV on their GitHub repository. Based on groundwater levels measured in Brandenburg in June, July and August, a trend [m/year] was derived for the last 5 years. Negative values refer to declining groundwater levels and positive values to rising levels. Note that there may be duplicate observations (groundwater stations with the same coordinates).
+
+The aim of the project is to identify spatial controls (spatial trends or covariates) on and possible interactions of observed groundwater trends. Hence, download data on potential covariates such as digital elevation models (e.g. COP30 or 90 from opentopography.org or land use/land cover.
+
+Once you have prepared the data, perform an exploratory analysis. Analyze and model the variogram and develop a kriging model (perhaps including additional variables (universal kriging)) that enables you to spatially predict groundwater trends.
+
+Visualize and discuss your results using maps and other plots.
+
+
+## Abstract:
+
+Generally, the change in groundwater level is caused by multiple factors, which makes separating single driving forces more difficult. We focus on changes in the water budget in Berlin-Brandenburg, Germany's capital region, over the last five years. Data were compiled by CORRECTIV. Measurements of groundwater levels in Brandenburg during the months of June, July, and August were used. This analysis was carried out to (1) identify spatial trends or covariates and their interactions with observed groundwater trends, (2) to identify local hydrological changes, and (3) to create a `model Variogram` and develop a `Kriging model` that helps us predict groundwater trends spatially. Studies show that the Berlin-Brandenburg region is widely characterized by decreasing groundwater and lake levels.
+
+
+## Introduction:
+
+Climate change affects groundwater levels by increasing aridity and excessive water withdrawal from groundwater bodies. Regional assessments of hydro-environmental changes have been carried out through spatial interpolation studies of measured changes in groundwater levels by CORRECTIV in Berlin-Brandenburg during the last five years, and the results can generally be presented spatially through easily interpretable digital elevation model maps and study and analyze the spatial groundwater trends.
+
+
+## Study site:
+
+In the northeast of Germany, the Brandenburg region is located. The state has an area of 29,480 square kilometres, making it the fifth largest in Germany. Together with Berlin, it forms the Berlin-Brandenburg Metropolitan Region.
+The Elbe and Oder are the two major rivers that drain into the North and Baltic seas, respectively. The Oder River flows in the eastern part of Brandenburg, while the Elbe flows in the western part.
+Rainfall in Brandenburg is relatively low, with a regional average of 604 mm per year, while evapotranspiration is relatively high, with a regional average of 511 mm. *(1951-2000, Gerstengarbe al. 2003).*
+
+## Motheds
+
+## Load the library:
+
+```{r}
+library(spatstat)
+library(gstat)
+library(sp)
+library(rgdal)
+library(raster)
+library(rgeos)
+library(sf)
+library(stars)
+library(tmap)
+```
+
+## Read the data:
+
+```{r}
+DWD <-read.table('C:/Users/mohan/R/Final project/groundwater/groundwater_5year_trend.csv',sep=",",header = T)
+head(DWD)
+```
+
+## We use unique function to  returns a data frame, but with duplicate elements/rows removed:
+
+```{r}
+UN<- unique(DWD$ID)
+length(UN)
+```
+
+## Clean the data and remove the NaN values:
+
+```{r}
+DWWD <- DWD[complete.cases(DWD), ]
+length(DWWD$ID)
+```
+
+## Reproject the data:
+
+```{r}
+coordinates(DWWD) <- ~ Lon + Lat
+proj4string(DWWD) <- CRS("+init=epsg:4326")
+DWDD <- spTransform(DWWD, CRS("+init=epsg:32632"))
+summary(DWDD)
+```
+## Visualization the data:
+
+```{r}
+tmap_mode("view")
+tm_shape(DWDD,name ="Groundwater Levels") + tm_dots(col = "Trend" ,size = 0.1,title ="Groundwater Levels") +
+tm_tiles("Stamen.TonerLabels") + tm_basemap("Stamen.Watercolor")
+```
+
+## Convert our data frame  to an sf object:
+
+```{r}
+data <- st_as_sf(DWDD, coords = c("Lon", "Lat"))
+```
+
+## Distribution of the data:
+
+```{r}
+plot(data["Trend"], key.pos = 4, axes = TRUE, key.width = lcm(1.7), key.length = 1, main="Fig 2:  Groundwater Levels classification")
+```
+
+
+## Data feature:
+
+According to our figure, we can see that most of our point distribution is between -0.2 and 0 and the mean value is around -0.05 so we can know that most of these points have decreased during the time study.
+
+
+## Point Pattern Analysis:
+
+```{r}
+water_ppp=as.ppp((data))
+water_ppp =unmark(water_ppp)
+```
+
+## Testing the groundwater distribution:
+
+### Estimating homogeneous intensity:
+
+Quadrat counts tile the observation window into equal sized quadrats and then count the number of points falling into each tile.
+
+```{r}
+Q = quadratcount(water_ppp)
+
+V <- distmap(water_ppp)
+#plot(V,main="Fig 4: Distance", axes = TRUE)
+
+par(mfrow=c(1,2)) 
+plot(Q, main="Fig 3: Quadrat counting")
+plot(data,add=T,col="blue",cex = .3)
+plot(V,main="Fig 4: Distance", axes = TRUE)
+plot(data,add=T,col="red",cex = .3)
+```
+### Kernel densities:
+
+We can use this function to visually explore densities.
+```{r}
+D <- density(water_ppp, adjust = 0.1)
+plot(D,main="Fig 5: spatial density", axes = TRUE)
+```
+
+
+
+According to figure 3 on the map above we can notice that the spatial density has a high concentration of water ground points in the east and west central region of Brandenburg.
+
+
+
+## Quadrat counting test of homogeneity:
+
+The function quadrat.test tests this hypothesis.
+
+```{r}
+Groundwater_test <- quadrat.test(Q)
+Groundwater_test
+```
+
+
+As *P_Value* the probability the variables are independent is less than the significance level (0.05), this means that our data is not a homogeneous Poisson process `non-randomly spatially distributed` reflecting a trend in the groundwater deposits occurences. The approach used is a dispersion test based on Quadrat counts, it performs a goodness-of-fit test of a fitted inhomogenous Poisson model.
+
+
+## Relative distribution estimate:
+
+```{r}
+rh <- rhohat(water_ppp,D)
+plot(rh, xlab = "Density between Groundwater Level", main="Fig 6: Estimate of the intensity ρ(D)")
+```
+
+
+
+Most of the water ground deposits has a distance between 3e-07 and 4e-07. This function estimates the kernel intensity , and it is expressed as a function of the spatial covariate.
+
+
+
+```{r}
+rhv <- rhohat(water_ppp,log(V))
+plot(rhv, xlab = "Distance to nearest Groundwater Level", main="Fig 7: Estimate of the intensity ρ(distance)")
+```
+
+
+
+The plot above is an estimate of the intensity ρ(X) as a function of distance. It indicates the waterground are relatively unlikely to be found at great distance of the central region of the study area.
+
+## We convert the Trend numbers from meter to millimeter to be easer to deal with:
+
+```{r}
+Trend.MM <- (DWWD$Trend)*1000
+DWWD$Trend.MM = Trend.MM
+head(DWWD)
+```
+
+
+
+## Plot Histogram:
+
+```{r}
+hist(log10(DWWD$Trend),xlab="Concentration",col = "blue",main="Fig 8: Groundwater levele Histogram")
+```
+
+
+
+We obtained a Gaussian distribution for the groundwater point and the largest intensity points around -1
+
+## Calculate the experimental variogram and explore whether the variogram is isotropic or anisotropic.
+
+### Variogram analysis:
+
+```{r}
+v <- variogram(Trend.MM~ 1,DWDD)
+plot(v, col="blue", main="Fig 9: Groundwater levele Experimental variogram ")
+```
+```{r}
+v <- variogram(Trend.MM ~ 1,DWDD,width= 1200)
+plot(v ,main="Fig 10: The Experimental variogram with cutoff= 45000,width= 1200")
+```
+## Fitting the spherical variogram with nugget:
+
+```{r}
+vs <- fit.variogram(v, vgm(,"Sph",nugget=700))
+plot(v, vs, main = "Fig 11: The Spherical Variogram of the groundwater Leveles with Nugget", col="red", lwd =2)
+```
+## Fitting the Gaussian variogram with nugget:
+
+```{r}
+vg <- fit.variogram(v, vgm(,"Gau",nugget=700))
+plot(v, vg, main = "Fig 12: The Gaussian Variogram of the groundwater Leveles with Nugget", col="red",lwd =2)
+```
+## Fitting the Exponential variogram with nugget:
+
+```{r}
+ve <- fit.variogram(v, vgm(,"Exp",nugget=700))
+plot(v, ve, main = "Fig 13: The Exponential Variogram of the groundwater Leveles", col="red", lwd =2)
+```
+## Sum of squared errors:
+
+```{r}
+# Spherical variogram 
+sse_s <- attr(vs,"SSErr")
+sse_s
+```
+```{r}
+# Gaussian variogram 
+sse_g <- attr(vg,"SSErr")
+sse_g
+```
+```{r}
+# Exponential variogram 
+sse_e <- attr(ve,"SSErr")
+sse_e
+```
+
+The result of sum of squared errors show that the Exponential variograms has the lowest sum of squared errors (38.70752).
+
+
+## Akaike Information Criterion (AIC):
+
+AIC is an estimator of out-of-sample prediction error but includes more parameters in the role of estimating differences between observed and modeled data, so AIC is scientifically more accurate than SSE.
+
+```{r}
+n <- length(v)
+
+# Spherical
+AIC_s <- length(v)*log(sse_s/n) +2*1
+AIC_s
+```
+```{r}
+# Gaussian
+AIC_g <- length(v)*log(sse_g/n) +2*1
+AIC_g
+```
+```{r}
+# Exponential 
+AIC_e <- length(v)*log(sse_e/n) +2*1
+AIC_e
+```
+
+From the estimator AIC results we can see that the Exponential variogram has the lowest AIC value [13.18565].
+
+## read the DEM for Brandenburg area:
+```{r}
+DEMM = read_stars("C:/Users/mohan/R/Final project/output_COP90.tif")
+DEM_e = DEMM$output_COP90.tif
+```
+
+
+
+## DEM analysis:
+
+### Quadrats determined by covariate:
+
+We used tesselate space using quantiles of the digital elevation model to test whether a elevation (from DEM) has an impact on the spatial distribution of Groundwater levels.
+
+```{r}
+dem = as.im(DEM_e)
+b <- quantile(dem,probs=(0:5)/5, type=2)
+elevcut <- cut(dem,breaks=b, labels=1:5)
+Vt <- tess(image=elevcut)
+
+plot(Vt,main="Fig 14: Elevation testing")
+```
+### Quadrat test:
+
+```{r}
+Qdem <- quadratcount(water_ppp,tess=Vt)
+tSdem <- quadrat.test(Qdem)
+
+tSdem
+```
+```{r}
+par(mfrow=c(1,2))
+plot(Qdem, main="Fig 15: Quadrant DEM")
+plot(tSdem, main="Fig 16: Quadrant test for DEM and groundwater", alpha=0.5)
+```
+
+
+## Ordinary Kriging:
+
+```{r}
+# Interpolation 
+k = krige(Trend.MM ~ 1 , location= DWWD,newdata = DEMM, model = ve,nmax = 5)
+```
+
+```{r}
+summary(k)
+```
+
+## These results could be visualized as a map:
+
+```{r}
+library(ggplot2)
+
+# Prediction map
+k%>% as.data.frame %>%
+ggplot(aes(x=x, y=y)) + geom_tile(aes(fill=var1.pred)) + coord_equal() +
+         scale_fill_gradient(low = "yellow", high = "red") +
+         ggtitle("Fig 17: Prediction of Groundwater (mm/year)")+
+         guides(fill=guide_legend(title='Prediction (mm/year)'))+
+         theme_bw()
+```
+
+```{r}
+# variance map
+k%>% as.data.frame %>%
+ggplot(aes(x=x, y=y)) + geom_tile(aes(fill=var1.var)) + coord_equal() +
+         scale_fill_gradient(low = "yellow", high = "red") +
+         ggtitle("Fig 18: Variance of Groundwater (mm/year)")+
+         guides(fill=guide_legend(title='Variance'))+
+         theme_bw()
+```
+
+
+
+
+## Conclusion:
+
+Based on the kriging map (Figure 17), it was possible to verify the distribution of the water ground content in the regions with higher and lower concentrations in the evaluated area.
+
+
+According to (Stock, M. & W. Lahmer (2007)) this study illustrates that the reason behind this decrease in Groundwater levels because of the decline in precipitation up to the middle of this century and, the mean daily temperatures which increased not only in summer but also in winter.
+
+
+
+
+
+## References:
+
+1. Stock, M. & W. Lahmer (2007): Brandenburg: A region in Germany suffering from water deficit - In spite of its numerous lakes. In: Lozán, J. L., H. Grassl, P. Hupfer, L. Menzel & C.-D. Schönwiese.
+
+
+2. Sonja Germer, Knut Kaiser, Oliver Bensand Reinhard F. Hüttl (2011) Water Balance Changes and Responses of Ecosystems and Societyin the Berlin-Brandenburg Region – a Review.
