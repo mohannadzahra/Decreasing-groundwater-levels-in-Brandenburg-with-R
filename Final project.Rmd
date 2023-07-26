@@ -15,19 +15,32 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Abstract:
 
-Generally, the change in groundwater level is caused by multiple factors, which makes separating single driving forces more difficult. We focus on changes in the water budget in Berlin-Brandenburg, Germany's capital region, over the last five years. Data were compiled by CORRECTIV. Measurements of groundwater levels in Brandenburg during the months of June, July, and August were used. This analysis was carried out to (1) identify spatial trends or covariates and their interactions with observed groundwater trends, (2) to identify local hydrological changes, and (3) to create a `model Variogram` and develop a `Kriging model` that helps us predict groundwater trends spatially. Studies show that the Berlin-Brandenburg region is widely characterized by decreasing groundwater and lake levels.
+Generally, the change in groundwater level is caused by multiple factors, which makes separating single driving forces more difficult.
+We focus on changes in the water budget in Berlin-Brandenburg, Germany's capital region, over the last five years. Data were compiled by
+CORRECTIV. Measurements of groundwater levels in Brandenburg during the months of June, July, and August were used. This analysis was 
+carried out to (1) identify spatial trends or covariates and their interactions with observed groundwater trends, (2) to identify local 
+hydrological changes, and (3) to create a `model Variogram` and develop a `Kriging model` that helps us predict groundwater trends
+spatially. Studies show that the Berlin-Brandenburg region is widely characterized by decreasing groundwater and lake levels.
+
 
 
 ## Introduction:
 
-Climate change affects groundwater levels by increasing aridity and excessive water withdrawal from groundwater bodies. Regional assessments of hydro-environmental changes have been carried out through spatial interpolation studies of measured changes in groundwater levels by CORRECTIV in Berlin-Brandenburg during the last five years, and the results can generally be presented spatially through easily interpretable digital elevation model maps and study and analyze the spatial groundwater trends.
+Climate change affects groundwater levels by increasing aridity and excessive water withdrawal from groundwater bodies. Regional
+assessments of hydro-environmental changes have been carried out through spatial interpolation studies of measured changes in groundwater
+levels by CORRECTIV in Berlin-Brandenburg during the last five years, and the results can generally be presented spatially through easily
+interpretable digital elevation model maps and study and analyze the spatial groundwater trends.
+
 
 
 ## Study site:
 
-In the northeast of Germany, the Brandenburg region is located. The state has an area of 29,480 square kilometres, making it the fifth largest in Germany. Together with Berlin, it forms the Berlin-Brandenburg Metropolitan Region.
-The Elbe and Oder are the two major rivers that drain into the North and Baltic seas, respectively. The Oder River flows in the eastern part of Brandenburg, while the Elbe flows in the western part.
-Rainfall in Brandenburg is relatively low, with a regional average of 604 mm per year, while evapotranspiration is relatively high, with a regional average of 511 mm. *(1951-2000, Gerstengarbe al. 2003).*
+In the northeast of Germany, the Brandenburg region is located. The state has an area of 29,480 square kilometres, making it the fifth
+largest in Germany. Together with Berlin, it forms the Berlin-Brandenburg Metropolitan Region.
+The Elbe and Oder are the two major rivers that drain into the North and Baltic seas, respectively. The Oder River flows in the eastern
+part of Brandenburg, while the Elbe flows in the western part.
+Rainfall in Brandenburg is relatively low, with a regional average of 604 mm per year, while evapotranspiration is relatively high, with a
+regional average of 511 mm. *(1951-2000, Gerstengarbe al. 2003).*
 
 ## Motheds
 
@@ -97,7 +110,8 @@ plot(data["Trend"], key.pos = 4, axes = TRUE, key.width = lcm(1.7), key.length =
 
 ## Data feature:
 
-According to our figure, we can see that most of our point distribution is between -0.2 and 0 and the mean value is around -0.05 so we can know that most of these points have decreased during the time study.
+According to our figure, we can see that most of our point distribution is between -0.2 and 0 and the mean value is around -0.05 so we can
+know that most of these points have decreased during the time study.
 
 
 ## Point Pattern Analysis:
@@ -135,7 +149,8 @@ plot(D,main="Fig 5: spatial density", axes = TRUE)
 
 
 
-According to figure 3 on the map above we can notice that the spatial density has a high concentration of water ground points in the east and west central region of Brandenburg.
+According to figure 3 on the map above we can notice that the spatial density has a high concentration of water ground points in the east
+and west central region of Brandenburg.
 
 
 
@@ -149,7 +164,9 @@ Groundwater_test
 ```
 
 
-As *P_Value* the probability the variables are independent is less than the significance level (0.05), this means that our data is not a homogeneous Poisson process `non-randomly spatially distributed` reflecting a trend in the groundwater deposits occurences. The approach used is a dispersion test based on Quadrat counts, it performs a goodness-of-fit test of a fitted inhomogenous Poisson model.
+As *P_Value* the probability the variables are independent is less than the significance level (0.05), this means that our data is not a
+homogeneous Poisson process `non-randomly spatially distributed` reflecting a trend in the groundwater deposits occurences. The approach
+used is a dispersion test based on Quadrat counts, it performs a goodness-of-fit test of a fitted inhomogenous Poisson model.
 
 
 ## Relative distribution estimate:
@@ -161,7 +178,8 @@ plot(rh, xlab = "Density between Groundwater Level", main="Fig 6: Estimate of th
 
 
 
-Most of the water ground deposits has a distance between 3e-07 and 4e-07. This function estimates the kernel intensity , and it is expressed as a function of the spatial covariate.
+Most of the water ground deposits has a distance between 3e-07 and 4e-07. This function estimates the kernel intensity , and it is
+expressed as a function of the spatial covariate.
 
 
 
@@ -172,7 +190,8 @@ plot(rhv, xlab = "Distance to nearest Groundwater Level", main="Fig 7: Estimate 
 
 
 
-The plot above is an estimate of the intensity ρ(X) as a function of distance. It indicates the waterground are relatively unlikely to be found at great distance of the central region of the study area.
+The plot above is an estimate of the intensity ρ(X) as a function of distance. It indicates the waterground are relatively unlikely to be
+found at great distance of the central region of the study area.
 
 ## We convert the Trend numbers from meter to millimeter to be easer to deal with:
 
@@ -247,7 +266,8 @@ The result of sum of squared errors show that the Exponential variograms has the
 
 ## Akaike Information Criterion (AIC):
 
-AIC is an estimator of out-of-sample prediction error but includes more parameters in the role of estimating differences between observed and modeled data, so AIC is scientifically more accurate than SSE.
+AIC is an estimator of out-of-sample prediction error but includes more parameters in the role of estimating differences between observed
+and modeled data, so AIC is scientifically more accurate than SSE.
 
 ```{r}
 n <- length(v)
@@ -281,7 +301,8 @@ DEM_e = DEMM$output_COP90.tif
 
 ### Quadrats determined by covariate:
 
-We used tesselate space using quantiles of the digital elevation model to test whether a elevation (from DEM) has an impact on the spatial distribution of Groundwater levels.
+We used tesselate space using quantiles of the digital elevation model to test whether a elevation (from DEM) has an impact on the spatial
+distribution of Groundwater levels.
 
 ```{r}
 dem = as.im(DEM_e)
@@ -346,10 +367,13 @@ ggplot(aes(x=x, y=y)) + geom_tile(aes(fill=var1.var)) + coord_equal() +
 
 ## Conclusion:
 
-Based on the kriging map (Figure 17), it was possible to verify the distribution of the water ground content in the regions with higher and lower concentrations in the evaluated area.
+Based on the kriging map (Figure 17), it was possible to verify the distribution of the water ground content in the regions with higher and
+lower concentrations in the evaluated area.
 
 
-According to (Stock, M. & W. Lahmer (2007)) this study illustrates that the reason behind this decrease in Groundwater levels because of the decline in precipitation up to the middle of this century and, the mean daily temperatures which increased not only in summer but also in winter.
+According to (Stock, M. & W. Lahmer (2007)) this study illustrates that the reason behind this decrease in Groundwater levels because of
+the decline in precipitation up to the middle of this century and, the mean daily temperatures which increased not only in summer but also
+in winter.
 
 
 
@@ -357,7 +381,9 @@ According to (Stock, M. & W. Lahmer (2007)) this study illustrates that the reas
 
 ## References:
 
-1. Stock, M. & W. Lahmer (2007): Brandenburg: A region in Germany suffering from water deficit - In spite of its numerous lakes. In: Lozán, J. L., H. Grassl, P. Hupfer, L. Menzel & C.-D. Schönwiese.
+1. Stock, M. & W. Lahmer (2007): Brandenburg: A region in Germany suffering from water deficit - In spite of its numerous lakes. In: Lozán,
+J. L., H. Grassl, P. Hupfer, L. Menzel & C.-D. Schönwiese.
 
 
-2. Sonja Germer, Knut Kaiser, Oliver Bensand Reinhard F. Hüttl (2011) Water Balance Changes and Responses of Ecosystems and Societyin the Berlin-Brandenburg Region – a Review.
+2. Sonja Germer, Knut Kaiser, Oliver Bensand Reinhard F. Hüttl (2011) Water Balance Changes and Responses of Ecosystems and Societyin the
+Berlin-Brandenburg Region – a Review.
